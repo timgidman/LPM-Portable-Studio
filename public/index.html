@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LPM Portable Studio</title>
+  <style>
+    :root {
+      --bg: #f7f2e8;
+      --card: #fffaf2;
+      --ink: #2d2418;
+      --line: #dcc8a0;
+      --gold: #8c6822;
+      --ok: #1f7a3f;
+      --warn: #9a6b11;
+      --bad: #9f2b2b;
+      --muted: #6a5f50;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; color: var(--ink); background: linear-gradient(180deg,#faf5ec 0%,#f2eadc 100%); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 18px; }
+    .hero { background: linear-gradient(135deg,#4b3922 0%,#7a5b22 55%,#c49a43 100%); color:#fff8ef; border-radius:22px; padding:24px; box-shadow:0 12px 28px rgba(0,0,0,.14); }
+    .hero h1 { margin:0 0 8px; font-size:32px; }
+    .hero p { margin:0; line-height:1.5; max-width:900px; }
+    .grid { display:grid; grid-template-columns: 1.05fr .95fr; gap:18px; margin-top:18px; }
+    .card { background: var(--card); border:2px solid var(--line); border-radius:20px; padding:18px; box-shadow:0 8px 20px rgba(0,0,0,.06); }
+    h2 { margin:0 0 12px; font-size:24px; }
+    .sub { color: var(--muted); margin:-2px 0 14px; line-height:1.45; }
+    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    button { border:0; border-radius:12px; padding:12px 16px; font-size:15px; font-weight:bold; cursor:pointer; background:#5a441e; color:#fff; }
+    button.secondary { background:#8c6822; }
+    button.ghost { background:#f1e4c7; color:var(--ink); border:1px solid var(--line); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .pill { display:inline-flex; align-items:center; padding:7px 12px; border-radius:999px; color:#fff; font-weight:bold; }
+    .ready { background: var(--ok); } .slow { background: var(--warn); } .bad { background: var(--bad); }
+    .facts { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+    .fact { background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px; font-size:14px; }
+    .fact strong { display:block; margin-bottom:4px; }
+    .log { margin-top:12px; padding:12px; background:#fff; border:1px solid var(--line); border-radius:12px; min-height:90px; white-space:pre-wrap; line-height:1.45; color:var(--muted); }
+    .project-list { display:grid; gap:10px; margin-top:12px; }
+    .project-item { border:1px solid var(--line); border-radius:14px; background:#fff; padding:12px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .project-item strong { display:block; }
+    input[type="file"], input[type="text"], select, textarea {
+      width:100%; padding:11px 12px; border:2px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font-size:15px;
+    }
+    label { display:block; font-weight:bold; margin:12px 0 6px; }
+    textarea { min-height:220px; resize:vertical; }
+    .preview { margin-top:14px; min-height:300px; border:2px solid var(--line); border-radius:20px; overflow:hidden; display:flex; align-items:center; justify-content:center; text-align:center; padding:18px; background:linear-gradient(135deg,#603a22 0%,#e18a44 45%,#f3d79e 100%); }
+    .preview[data-bg='ocean'] { background: linear-gradient(135deg,#123b59 0%,#2d7ca8 52%,#bfe5f4 100%); }
+    .preview[data-bg='mountains'] { background: linear-gradient(135deg,#273628 0%,#627a59 45%,#dbd3b7 100%); }
+    .preview[data-bg='city'] { background: linear-gradient(135deg,#2f334d 0%,#6d79b6 50%,#ddd7ef 100%); }
+    .lyric-box { max-width:86%; padding:22px 24px; background:rgba(0,0,0,.30); color:#fff; border-radius:18px; text-shadow:0 2px 10px rgba(0,0,0,.45); font-size:30px; line-height:1.35; font-weight:700; }
+    .style-classic .lyric-box { font-family: Georgia, serif; }
+    .style-bold .lyric-box { font-family: Arial Black, Arial, sans-serif; letter-spacing:.4px; }
+    .style-soft .lyric-box { font-family: "Trebuchet MS", Arial, sans-serif; font-weight:600; }
+    .style-script .lyric-box { font-family: "Brush Script MT", cursive; font-size:36px; }
+    .hidden { display:none !important; }
+    .stage { margin-top:18px; }
+    .stage-title { font-size:18px; font-weight:bold; margin-bottom:6px; }
+    .tiny { font-size:12px; color:var(--muted); }
+    @media (max-width: 980px) { .grid { grid-template-columns:1fr; } .facts { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Living Pages Portable Studio</h1>
+      <p>This is the working product foundation: start a project, continue a project, use built-in demo data, extract lyrics on the server, style the project, and keep project memory in the Studio library.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Studio Doorway</h2>
+        <div class="sub">Use one of these entry points. The Studio keeps track of projects in this browser so you can continue without hunting for files.</div>
+        <div class="btns">
+          <button id="newProjectBtn">Start New Project</button>
+          <button id="continueBtn" class="secondary">Continue Project</button>
+          <button id="demoBtn" class="ghost">Try Demo Project</button>
+        </div>
+        <div class="stage">
+          <div class="stage-title">Readiness Check</div>
+          <div id="devicePill" class="pill slow">Checking device...</div>
+          <div style="height:8px"></div>
+          <div id="serverPill" class="pill slow">Checking server...</div>
+          <div class="facts" id="facts"></div>
+          <div class="btns">
+            <button id="rerunChecks" class="ghost">Run Checks Again</button>
+            <button id="benchBtn" class="ghost">Quick Benchmark</button>
+          </div>
+          <div id="checkLog" class="log">Checks starting...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Studio Library</h2>
+        <div class="sub">Projects saved in this browser appear here. This removes the need to remember folders or filenames.</div>
+        <div id="projectList" class="project-list"></div>
+        <div id="libraryLog" class="log">No projects loaded yet.</div>
+      </div>
+    </div>
+
+    <div id="workspace" class="card stage hidden">
+      <h2>Project Workspace</h2>
+      <div class="sub">The Studio will move this project forward one step at a time.</div>
+
+      <label for="projectTitle">Project title</label>
+      <input id="projectTitle" type="text" placeholder="Example: Sunday School Lyric Test" />
+
+      <label for="audioFile">Upload song</label>
+      <input id="audioFile" type="file" accept="audio/*" />
+      <audio id="audioPlayer" controls style="width:100%;margin-top:10px;display:none"></audio>
+
+      <div class="btns">
+        <button id="extractBtn">Extract Lyrics</button>
+        <button id="useDemoFiles" class="ghost">Use Built-In Demo Info</button>
+        <button id="saveProjectBtn" class="secondary">Save Project</button>
+      </div>
+
+      <div id="extractLog" class="log">Start a project, then upload a song or try demo mode.</div>
+
+      <label for="lyricsBox">Lyrics</label>
+      <textarea id="lyricsBox" placeholder="Extracted lyrics will appear here. You can correct them if needed."></textarea>
+
+      <label for="backgroundSelect">Background scene</label>
+      <select id="backgroundSelect">
+        <option value="sunrise">Sunrise Warm Glow</option>
+        <option value="ocean">Ocean Blue</option>
+        <option value="mountains">Mountains Calm</option>
+        <option value="city">City Night Lights</option>
+      </select>
+
+      <label for="styleSelect">Lyric style</label>
+      <select id="styleSelect">
+        <option value="classic">Classic</option>
+        <option value="bold">Bold</option>
+        <option value="soft">Soft Modern</option>
+        <option value="script">Script</option>
+      </select>
+
+      <div class="btns">
+        <button id="markReadyBtn">Mark Ready for Render</button>
+      </div>
+
+      <div id="preview" class="preview style-classic" data-bg="sunrise">
+        <div id="previewText" class="lyric-box">Your lyric preview will appear here.</div>
+      </div>
+      <div id="previewLog" class="log">Preview is ready when you are.</div>
+    </div>
+  </div>
+
+  <script>
+    const STORE_KEY = 'lpm-portable-studio-projects-v1';
+
+    const newProjectBtn = document.getElementById('newProjectBtn');
+    const continueBtn = document.getElementById('continueBtn');
+    const demoBtn = document.getElementById('demoBtn');
+    const rerunChecks = document.getElementById('rerunChecks');
+    const benchBtn = document.getElementById('benchBtn');
+    const devicePill = document.getElementById('devicePill');
+    const serverPill = document.getElementById('serverPill');
+    const facts = document.getElementById('facts');
+    const checkLog = document.getElementById('checkLog');
+    const projectList = document.getElementById('projectList');
+    const libraryLog = document.getElementById('libraryLog');
+    const workspace = document.getElementById('workspace');
+    const projectTitle = document.getElementById('projectTitle');
+    const audioFile = document.getElementById('audioFile');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const extractBtn = document.getElementById('extractBtn');
+    const useDemoFiles = document.getElementById('useDemoFiles');
+    const saveProjectBtn = document.getElementById('saveProjectBtn');
+    const extractLog = document.getElementById('extractLog');
+    const lyricsBox = document.getElementById('lyricsBox');
+    const backgroundSelect = document.getElementById('backgroundSelect');
+    const styleSelect = document.getElementById('styleSelect');
+    const markReadyBtn = document.getElementById('markReadyBtn');
+    const preview = document.getElementById('preview');
+    const previewText = document.getElementById('previewText');
+    const previewLog = document.getElementById('previewLog');
+
+    let selectedFile = null;
+    let benchScore = 0;
+    let currentProjectId = null;
+
+    function getProjects() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function setProjects(projects) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(projects));
+    }
+
+    function saveCurrentProject(status) {
+      if (!currentProjectId) currentProjectId = crypto.randomUUID();
+      const projects = getProjects();
+      const now = new Date().toISOString();
+      const fileName = selectedFile ? selectedFile.name : '';
+      const payload = {
+        id: currentProjectId,
+        title: projectTitle.value || 'Untitled Project',
+        status: status || 'Started',
+        updatedAt: now,
+        fileName,
+        lyrics: lyricsBox.value || '',
+        background: backgroundSelect.value,
+        lyricStyle: styleSelect.value
+      };
+      const idx = projects.findIndex(p => p.id === currentProjectId);
+      if (idx >= 0) projects[idx] = payload; else projects.unshift(payload);
+      setProjects(projects);
+      renderProjectList();
+      return payload;
+    }
+
+    function loadProject(project) {
+      currentProjectId = project.id;
+      workspace.classList.remove('hidden');
+      projectTitle.value = project.title || '';
+      lyricsBox.value = project.lyrics || '';
+      backgroundSelect.value = project.background || 'sunrise';
+      styleSelect.value = project.lyricStyle || 'classic';
+      preview.dataset.bg = backgroundSelect.value;
+      preview.className = `preview style-${styleSelect.value}`;
+      previewText.textContent = (project.lyrics || '').split(/\n+/).filter(Boolean)[0] || 'Your lyric preview will appear here.';
+      extractLog.textContent = project.fileName ? `Project loaded. Previous audio file name: ${project.fileName}` : 'Project loaded. Upload a song to continue.';
+      previewLog.textContent = `Loaded project status: ${project.status || 'Started'}`;
+    }
+
+    function renderProjectList() {
+      const projects = getProjects();
+      projectList.innerHTML = '';
+      if (!projects.length) {
+        libraryLog.textContent = 'No saved projects in this browser yet.';
+        return;
+      }
+      libraryLog.textContent = `${projects.length} project(s) saved in this browser.`;
+      projects.forEach(project => {
+        const item = document.createElement('div');
+        item.className = 'project-item';
+        const left = document.createElement('div');
+        left.innerHTML = `<strong>${project.title || 'Untitled Project'}</strong><div>${project.status || 'Started'} • ${new Date(project.updatedAt).toLocaleString()}</div>`;
+        const right = document.createElement('div');
+        const openBtn = document.createElement('button');
+        openBtn.textContent = 'Open';
+        openBtn.className = 'secondary';
+        openBtn.onclick = () => loadProject(project);
+        right.appendChild(openBtn);
+        item.appendChild(left);
+        item.appendChild(right);
+        projectList.appendChild(item);
+      });
+    }
+
+    function setPill(el, text, cls) {
+      el.textContent = text;
+      el.className = `pill ${cls}`;
+    }
+
+    function addFact(label, value) {
+      const div = document.createElement('div');
+      div.className = 'fact';
+      div.innerHTML = `<strong>${label}</strong><span>${value}</span>`;
+      facts.appendChild(div);
+    }
+
+    function deviceVerdict(score) {
+      if (score >= 75) return ['Ready', 'ready'];
+      if (score >= 48) return ['May Be Slow', 'slow'];
+      return ['Not Recommended', 'bad'];
+    }
+
+    async function runDeviceCheck() {
+      facts.innerHTML = '';
+      let score = 50;
+      const nav = navigator;
+      const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+      const mem = typeof nav.deviceMemory === 'number' ? nav.deviceMemory : null;
+      const cpu = typeof nav.hardwareConcurrency === 'number' ? nav.hardwareConcurrency : null;
+
+      if (mem !== null) { if (mem >= 8) score += 15; else if (mem >= 4) score += 7; else if (mem <= 2) score -= 18; }
+      if (cpu !== null) { if (cpu >= 8) score += 12; else if (cpu >= 4) score += 5; else if (cpu <= 2) score -= 15; }
+      if (conn) {
+        if (conn.effectiveType === '4g') score += 8;
+        if (conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g') score -= 25;
+      }
+      if (!navigator.onLine) score -= 40;
+      score += benchScore;
+      score = Math.max(0, Math.min(100, Math.round(score)));
+      const [label, cls] = deviceVerdict(score);
+      setPill(devicePill, `Device: ${label}`, cls);
+
+      addFact('Internet', navigator.onLine ? 'Online' : 'Offline');
+      addFact('Connection', conn ? `${conn.effectiveType || 'unknown'} / ${conn.downlink || '?'} Mbps` : 'Not exposed');
+      addFact('Device memory', mem !== null ? `${mem} GB approx.` : 'Not exposed');
+      addFact('CPU threads', cpu !== null ? cpu : 'Not exposed');
+      addFact('Saved projects here', `${getProjects().length}`);
+      checkLog.textContent = label === 'Ready'
+        ? 'Device looks strong enough for normal hosted use.'
+        : label === 'May Be Slow'
+          ? 'Device can probably use the hosted studio, but it may feel slower.'
+          : 'Device may struggle. Hosted transcription can still help, but the interface may feel weak.';
+    }
+
+    async function runServerCheck() {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        if (data.ok) {
+          setPill(serverPill, `Server: Ready (${data.transcription})`, data.transcription.includes('enabled') ? 'ready' : 'slow');
+        } else {
+          setPill(serverPill, 'Server: Problem', 'bad');
+        }
+      } catch {
+        setPill(serverPill, 'Server: Not Reached', 'bad');
+      }
+    }
+
+    newProjectBtn.addEventListener('click', () => {
+      currentProjectId = crypto.randomUUID();
+      selectedFile = null;
+      workspace.classList.remove('hidden');
+      projectTitle.value = '';
+      lyricsBox.value = '';
+      backgroundSelect.value = 'sunrise';
+      styleSelect.value = 'classic';
+      preview.dataset.bg = 'sunrise';
+      preview.className = 'preview style-classic';
+      previewText.textContent = 'Your lyric preview will appear here.';
+      audioPlayer.style.display = 'none';
+      audioPlayer.removeAttribute('src');
+      extractLog.textContent = 'New project started. Upload a song to continue.';
+      previewLog.textContent = 'Project is open.';
+      saveCurrentProject('Started');
+    });
+
+    continueBtn.addEventListener('click', () => {
+      const projects = getProjects();
+      if (!projects.length) {
+        libraryLog.textContent = 'No saved projects yet. Start a new project first.';
+        return;
+      }
+      loadProject(projects[0]);
+    });
+
+    demoBtn.addEventListener('click', () => {
+      currentProjectId = crypto.randomUUID();
+      workspace.classList.remove('hidden');
+      projectTitle.value = 'Demo Project';
+      lyricsBox.value = 'When the road feels long\nAnd the answer seems far away\nGod still holds tomorrow\nAnd gives us strength for today';
+      backgroundSelect.value = 'sunrise';
+      styleSelect.value = 'classic';
+      preview.dataset.bg = 'sunrise';
+      preview.className = 'preview style-classic';
+      previewText.textContent = 'When the road feels long';
+      extractLog.textContent = 'Demo project loaded. Built-in test audio will be available after deployment at /test-data/Sample_Test_Audio_Clear_Vocals.wav';
+      previewLog.textContent = 'Demo project ready.';
+      saveCurrentProject('Demo Loaded');
+    });
+
+    rerunChecks.addEventListener('click', async () => {
+      await runDeviceCheck();
+      await runServerCheck();
+    });
+
+    benchBtn.addEventListener('click', async () => {
+      checkLog.textContent = 'Running quick benchmark...';
+      const start = performance.now();
+      let x = 0;
+      for (let i = 0; i < 3500000; i++) x += Math.sqrt((i % 100) + 1);
+      const ms = performance.now() - start;
+      benchScore = ms < 250 ? 12 : ms < 700 ? 6 : ms < 1400 ? 0 : -12;
+      checkLog.textContent = `Benchmark complete in ${ms.toFixed(0)} ms.`;
+      await runDeviceCheck();
+      await runServerCheck();
+    });
+
+    audioFile.addEventListener('change', () => {
+      selectedFile = audioFile.files && audioFile.files[0] ? audioFile.files[0] : null;
+      if (!selectedFile) return;
+      audioPlayer.src = URL.createObjectURL(selectedFile);
+      audioPlayer.style.display = 'block';
+      extractLog.textContent = `Loaded audio file: ${selectedFile.name}`;
+      saveCurrentProject('Song Uploaded');
+    });
+
+    extractBtn.addEventListener('click', async () => {
+      if (!selectedFile) {
+        extractLog.textContent = 'Please upload a song first.';
+        return;
+      }
+      extractBtn.disabled = true;
+      extractLog.textContent = 'Uploading audio to the server and extracting lyrics...';
+      try {
+        const formData = new FormData();
+        formData.append('audio', selectedFile);
+        const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Transcription failed.');
+        lyricsBox.value = data.text || '';
+        previewText.textContent = (data.text || '').split(/\n+/).filter(Boolean)[0] || 'Your lyric preview will appear here.';
+        extractLog.textContent = `Lyrics extracted from ${data.filename}. Review and correct the text if needed.`;
+        saveCurrentProject('Lyrics Extracted');
+      } catch (error) {
+        extractLog.textContent = `Lyric extraction failed: ${error.message}`;
+      } finally {
+        extractBtn.disabled = false;
+      }
+    });
+
+    useDemoFiles.addEventListener('click', () => {
+      extractLog.textContent = 'Built-in demo files after deployment:\n/test-data/Sample_Test_Audio_Clear_Vocals.wav\n/test-data/Sample_Test_Lyrics.txt';
+    });
+
+    saveProjectBtn.addEventListener('click', () => {
+      const payload = saveCurrentProject('Lyrics Reviewed');
+      previewLog.textContent = `Project saved: ${payload.title}`;
+    });
+
+    backgroundSelect.addEventListener('change', () => {
+      preview.dataset.bg = backgroundSelect.value;
+      saveCurrentProject('Style Chosen');
+    });
+
+    styleSelect.addEventListener('change', () => {
+      preview.className = `preview style-${styleSelect.value}`;
+      saveCurrentProject('Style Chosen');
+    });
+
+    lyricsBox.addEventListener('input', () => {
+      previewText.textContent = lyricsBox.value.trim().split(/\n+/).filter(Boolean)[0] || 'Your lyric preview will appear here.';
+    });
+
+    markReadyBtn.addEventListener('click', () => {
+      const payload = saveCurrentProject('Ready to Render');
+      previewLog.textContent = `Project marked ready for render: ${payload.title}`;
+    });
+
+    renderProjectList();
+    runDeviceCheck();
+    runServerCheck();
+  </script>
+</body>
+</html>
